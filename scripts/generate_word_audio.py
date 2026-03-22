@@ -21,6 +21,10 @@ def synthesize_word(word: str, output_path: Path, lang: str) -> None:
     gTTS(text=word, lang=lang).save(str(output_path))
 
 
+def should_skip_existing_audio(output_path: Path) -> bool:
+    return output_path.exists() and output_path.stat().st_size > 0
+
+
 def main() -> None:
     args = parse_args()
     audio_dir = default_audio_dir(args.csv, args.audio_dir)
@@ -29,9 +33,11 @@ def main() -> None:
     skipped = 0
     for card in load_cards(args.csv):
         output_path = audio_dir / audio_filename(card.index, card.front)
-        if output_path.exists():
+        if should_skip_existing_audio(output_path):
             skipped += 1
             continue
+        if output_path.exists():
+            output_path.unlink()
         synthesize_word(card.front, output_path, args.lang)
         created += 1
         print(f"created {output_path.name}")
