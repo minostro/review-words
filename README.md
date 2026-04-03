@@ -56,6 +56,42 @@ python -m scripts.build_storybook_audio_apkg \
 
 If you want to reuse an existing audio folder, pass `--audio-dir /path/to/audio`.
 
+## Build The Animal Multiplication Deck
+
+This builder derives a child-friendly multiplication deck from an existing `.apkg`.
+
+What it produces:
+
+- `Tables::2-4`
+- `Tables::5-10`
+- animal-themed SVG visuals
+- Spanish prompt audio, answer audio, and celebration audio
+- playful prompts on the answer side
+
+The derived deck keeps facts where both numbers are `10` or below and the practiced table is `2` through `10`.
+
+```bash
+cd /Users/minostro/Repos/review-words
+. .venv/bin/activate
+python -m scripts.generate_multiplication_audio \
+  --source-apkg /Users/minostro/Downloads/1_to_20_Multiplication_Tables_100_accurate_value.apkg
+
+python -m scripts.build_multiplication_apkg \
+  --source-apkg /Users/minostro/Downloads/1_to_20_Multiplication_Tables_100_accurate_value.apkg \
+  --audio-dir out/audio/1_to_20_Multiplication_Tables_100_accurate_value
+```
+
+By default this writes:
+
+- audio files under `out/audio/<source-apkg-stem>/`
+- the final package under `out/<source-apkg-stem>_animal_multiplication.apkg`
+
+Notes:
+
+- `gTTS` needs network access when generating real MP3 files
+- SVG visuals are generated automatically during package creation
+- you can inspect the output package quickly with `unzip -l out/*animal_multiplication.apkg`
+
 ## Current Salvador Export
 
 These commands reproduce the current deck from the files we already generated:
