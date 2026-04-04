@@ -11,14 +11,20 @@ from pathlib import Path
 import genanki
 
 from scripts.generate_multiplication_audio import default_audio_dir
-from scripts.multiplication_common import MultiplicationFact, load_supported_facts
+from scripts.multiplication_common import MultiplicationFact, configured_deck_names, load_supported_facts
 from scripts.multiplication_content import playful_prompt_text
 from scripts.multiplication_visuals import render_fact_svg, visual_filename
 
 
 MODEL_ID = 1837452204
-DECK_24_ID = 1837452202
-DECK_510_ID = 1837452203
+DECK_IDS = {
+    "Tables::2-4": 1837452202,
+    "Tables::5-10": 1837452203,
+    "Tables::Focused::2 x 1-5": 1837452205,
+    "Tables::Focused::2 x 6-10": 1837452206,
+    "Tables::Focused::3 x 1-5": 1837452207,
+    "Tables::Focused::3 x 6-10": 1837452208,
+}
 
 FRONT_TMPL = """
 <div class="card-wrap">
@@ -225,6 +231,10 @@ def note_fields_in_order(fields: dict[str, str]) -> list[str]:
     ]
 
 
+def note_guid(fact: MultiplicationFact, deck_name: str) -> str:
+    return genanki.guid_for(fact.front, fact.back, deck_name)
+
+
 def ensure_media_file(path: Path) -> None:
     if not path.exists():
         raise FileNotFoundError(f"Missing media file: {path}")
@@ -258,8 +268,11 @@ def build_package(source_apkg: Path, audio_dir: Path, output_path: Path) -> Path
     output_path.parent.mkdir(parents=True, exist_ok=True)
     facts = load_supported_facts(source_apkg)
     model = build_model()
-    deck_24 = genanki.Deck(DECK_24_ID, "Tables::2-4")
-    deck_510 = genanki.Deck(DECK_510_ID, "Tables::5-10")
+    deck_names = configured_deck_names()
+    decks = {
+        deck_name: genanki.Deck(DECK_IDS[deck_name], deck_name)
+        for deck_name in deck_names
+    }
     media_files: list[str] = []
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -279,15 +292,21 @@ def build_package(source_apkg: Path, audio_dir: Path, output_path: Path) -> Path
             ensure_media_file(celebration_path)
 
             fields = build_note_fields(fact, visual_name, celebration_name)
-            note = genanki.Note(model=model, fields=note_fields_in_order(fields))
-            if fact.subdeck_name == "Tables::2-4":
-                deck_24.add_note(note)
-            else:
-                deck_510.add_note(note)
+            note_fields = note_fields_in_order(fields)
+            for deck_name in fact.deck_names:
+                note = genanki.Note(
+                    model=model,
+                    fields=note_fields,
+                    guid=note_guid(fact, deck_name),
+                )
+                decks[deck_name].add_note(note)
 
             media_files.extend([str(visual_path), str(prompt_path), str(answer_path), str(celebration_path)])
 
-        genanki.Package([deck_24, deck_510], media_files=sorted(set(media_files))).write_to_file(output_path)
+        genanki.Package(
+            [decks[deck_name] for deck_name in deck_names],
+            media_files=sorted(set(media_files)),
+        ).write_to_file(output_path)
 
     return output_path
 

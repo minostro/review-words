@@ -64,11 +64,21 @@ What it produces:
 
 - `Tables::2-4`
 - `Tables::5-10`
+- `Tables::Focused::2 x 1-5`
+- `Tables::Focused::2 x 6-10`
+- `Tables::Focused::3 x 1-5`
+- `Tables::Focused::3 x 6-10`
 - animal-themed SVG visuals
 - Spanish prompt audio, answer audio, and celebration audio
 - playful prompts on the answer side
 
-The derived deck keeps facts where both numbers are `10` or below and the practiced table is `2` through `10`.
+The derived package now contains:
+
+- `90` broad-review cards across `Tables::2-4` and `Tables::5-10`
+- `38` additional focused-practice cards across the four `Tables::Focused::*` decks
+
+The broad decks keep facts where both numbers are `10` or below and the practiced table is `2` through `10`.
+The focused decks add the requested `2` and `3` practice ranges, including commutative forms such as `5 x 2` and `10 x 3`.
 
 ```bash
 cd /Users/minostro/Repos/review-words

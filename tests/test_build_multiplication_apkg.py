@@ -96,7 +96,7 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
 
         self.assertIn("Animal Multiplication Note High Contrast", models_json)
 
-    def test_build_package_uses_two_expected_subdecks(self) -> None:
+    def test_build_package_uses_six_expected_subdecks(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             source_apkg = temp_path / "tables.apkg"
@@ -105,34 +105,44 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
             build_sample_apkg(
                 source_apkg,
                 [
-                    ("1 X 2 = ?", "2"),
-                    ("2 X 4 = ?", "8"),
+                    ("5 X 2 = ?", "10"),
+                    ("10 X 2 = ?", "20"),
+                    ("3 X 1 = ?", "3"),
+                    ("10 X 3 = ?", "30"),
                     ("7 X 10 = ?", "70"),
-                    ("1 X 11 = ?", "11"),
                 ],
             )
-            for filename in [
-                "fact_01x02_prompt.mp3",
-                "fact_01x02_answer.mp3",
-                "fact_02x04_prompt.mp3",
-                "fact_02x04_answer.mp3",
-                "fact_07x10_prompt.mp3",
-                "fact_07x10_answer.mp3",
-                "celebration_01.mp3",
-                "celebration_02.mp3",
-                "celebration_03.mp3",
-            ]:
-                path = audio_dir / filename
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(b"audio")
+            for fact in load_supported_facts(source_apkg):
+                for filename in [
+                    prompt_audio_filename(fact),
+                    answer_audio_filename(fact),
+                    celebration_audio_filename(fact),
+                ]:
+                    path = audio_dir / filename
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(b"audio")
 
             build_package(source_apkg, audio_dir, output_path)
             summary = inspect_package(output_path)
 
-        self.assertEqual(summary.deck_names, {"Tables::2-4", "Tables::5-10"})
-        self.assertEqual(summary.deck_card_counts["Tables::2-4"], 2)
+        self.assertEqual(
+            summary.deck_names,
+            {
+                "Tables::2-4",
+                "Tables::5-10",
+                "Tables::Focused::2 x 1-5",
+                "Tables::Focused::2 x 6-10",
+                "Tables::Focused::3 x 1-5",
+                "Tables::Focused::3 x 6-10",
+            },
+        )
+        self.assertEqual(summary.deck_card_counts["Tables::2-4"], 3)
         self.assertEqual(summary.deck_card_counts["Tables::5-10"], 1)
-        self.assertEqual(summary.total_cards, 3)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 1-5"], 1)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 6-10"], 1)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 1-5"], 1)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 6-10"], 1)
+        self.assertEqual(summary.total_cards, 8)
 
     def test_built_package_contains_expected_card_counts(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -159,9 +169,54 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
             build_package(source_apkg, audio_dir, output_path)
             summary = inspect_package(output_path)
 
-        self.assertEqual(summary.total_cards, 90)
+        self.assertEqual(
+            summary.deck_names,
+            {
+                "Tables::2-4",
+                "Tables::5-10",
+                "Tables::Focused::2 x 1-5",
+                "Tables::Focused::2 x 6-10",
+                "Tables::Focused::3 x 1-5",
+                "Tables::Focused::3 x 6-10",
+            },
+        )
         self.assertEqual(summary.deck_card_counts["Tables::2-4"], 30)
         self.assertEqual(summary.deck_card_counts["Tables::5-10"], 60)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 1-5"], 9)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 6-10"], 10)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 1-5"], 9)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 6-10"], 10)
+        self.assertEqual(summary.total_cards, 128)
+
+    def test_focused_deck_counts_do_not_double_count_self_commutative_facts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            source_apkg = temp_path / "tables.apkg"
+            audio_dir = temp_path / "audio"
+            output_path = temp_path / "result.apkg"
+            build_sample_apkg(
+                source_apkg,
+                [
+                    ("2 X 2 = ?", "4"),
+                    ("3 X 3 = ?", "9"),
+                ],
+            )
+            for fact in load_supported_facts(source_apkg):
+                for filename in [
+                    prompt_audio_filename(fact),
+                    answer_audio_filename(fact),
+                    celebration_audio_filename(fact),
+                ]:
+                    path = audio_dir / filename
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(b"audio")
+
+            build_package(source_apkg, audio_dir, output_path)
+            summary = inspect_package(output_path)
+
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 1-5"], 1)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 1-5"], 1)
+        self.assertEqual(summary.total_cards, 4)
 
 
 if __name__ == "__main__":
