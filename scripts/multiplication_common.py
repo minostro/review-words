@@ -31,6 +31,10 @@ FOCUSED_DECKS = (
     FocusedDeckDefinition("Tables::Focused::2 x 6-10", table=2, other_start=6, other_end=10),
     FocusedDeckDefinition("Tables::Focused::3 x 1-5", table=3, other_start=1, other_end=5),
     FocusedDeckDefinition("Tables::Focused::3 x 6-10", table=3, other_start=6, other_end=10),
+    FocusedDeckDefinition("Tables::Focused::4 x 1-5", table=4, other_start=1, other_end=5),
+    FocusedDeckDefinition("Tables::Focused::4 x 6-10", table=4, other_start=6, other_end=10),
+    FocusedDeckDefinition("Tables::Focused::5 x 1-5", table=5, other_start=1, other_end=5),
+    FocusedDeckDefinition("Tables::Focused::5 x 6-10", table=5, other_start=6, other_end=10),
 )
 
 

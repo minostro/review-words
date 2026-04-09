@@ -24,6 +24,10 @@ DECK_IDS = {
     "Tables::Focused::2 x 6-10": 1837452206,
     "Tables::Focused::3 x 1-5": 1837452207,
     "Tables::Focused::3 x 6-10": 1837452208,
+    "Tables::Focused::4 x 1-5": 1837452209,
+    "Tables::Focused::4 x 6-10": 1837452210,
+    "Tables::Focused::5 x 1-5": 1837452211,
+    "Tables::Focused::5 x 6-10": 1837452212,
 }
 
 FRONT_TMPL = """

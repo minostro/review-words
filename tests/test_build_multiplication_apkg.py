@@ -96,7 +96,7 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
 
         self.assertIn("Animal Multiplication Note High Contrast", models_json)
 
-    def test_build_package_uses_six_expected_subdecks(self) -> None:
+    def test_build_package_uses_ten_expected_subdecks(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             source_apkg = temp_path / "tables.apkg"
@@ -109,7 +109,10 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
                     ("10 X 2 = ?", "20"),
                     ("3 X 1 = ?", "3"),
                     ("10 X 3 = ?", "30"),
-                    ("7 X 10 = ?", "70"),
+                    ("5 X 4 = ?", "20"),
+                    ("10 X 4 = ?", "40"),
+                    ("5 X 5 = ?", "25"),
+                    ("10 X 5 = ?", "50"),
                 ],
             )
             for fact in load_supported_facts(source_apkg):
@@ -134,15 +137,23 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
                 "Tables::Focused::2 x 6-10",
                 "Tables::Focused::3 x 1-5",
                 "Tables::Focused::3 x 6-10",
+                "Tables::Focused::4 x 1-5",
+                "Tables::Focused::4 x 6-10",
+                "Tables::Focused::5 x 1-5",
+                "Tables::Focused::5 x 6-10",
             },
         )
-        self.assertEqual(summary.deck_card_counts["Tables::2-4"], 3)
-        self.assertEqual(summary.deck_card_counts["Tables::5-10"], 1)
+        self.assertEqual(summary.deck_card_counts["Tables::2-4"], 5)
+        self.assertEqual(summary.deck_card_counts["Tables::5-10"], 2)
         self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 1-5"], 1)
         self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 6-10"], 1)
         self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 1-5"], 1)
         self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 6-10"], 1)
-        self.assertEqual(summary.total_cards, 8)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::4 x 1-5"], 1)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::4 x 6-10"], 1)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::5 x 1-5"], 3)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::5 x 6-10"], 1)
+        self.assertEqual(summary.total_cards, 17)
 
     def test_built_package_contains_expected_card_counts(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -178,6 +189,10 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
                 "Tables::Focused::2 x 6-10",
                 "Tables::Focused::3 x 1-5",
                 "Tables::Focused::3 x 6-10",
+                "Tables::Focused::4 x 1-5",
+                "Tables::Focused::4 x 6-10",
+                "Tables::Focused::5 x 1-5",
+                "Tables::Focused::5 x 6-10",
             },
         )
         self.assertEqual(summary.deck_card_counts["Tables::2-4"], 30)
@@ -186,7 +201,11 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
         self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 6-10"], 10)
         self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 1-5"], 9)
         self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 6-10"], 10)
-        self.assertEqual(summary.total_cards, 128)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::4 x 1-5"], 9)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::4 x 6-10"], 10)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::5 x 1-5"], 9)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::5 x 6-10"], 10)
+        self.assertEqual(summary.total_cards, 166)
 
     def test_focused_deck_counts_do_not_double_count_self_commutative_facts(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -199,6 +218,8 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
                 [
                     ("2 X 2 = ?", "4"),
                     ("3 X 3 = ?", "9"),
+                    ("4 X 4 = ?", "16"),
+                    ("5 X 5 = ?", "25"),
                 ],
             )
             for fact in load_supported_facts(source_apkg):
@@ -216,7 +237,9 @@ class BuildMultiplicationApkgTest(unittest.TestCase):
 
         self.assertEqual(summary.deck_card_counts["Tables::Focused::2 x 1-5"], 1)
         self.assertEqual(summary.deck_card_counts["Tables::Focused::3 x 1-5"], 1)
-        self.assertEqual(summary.total_cards, 4)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::4 x 1-5"], 1)
+        self.assertEqual(summary.deck_card_counts["Tables::Focused::5 x 1-5"], 1)
+        self.assertEqual(summary.total_cards, 8)
 
 
 if __name__ == "__main__":

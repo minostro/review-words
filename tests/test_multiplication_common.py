@@ -50,21 +50,25 @@ class MultiplicationCommonTest(unittest.TestCase):
                 "Tables::Focused::2 x 6-10",
                 "Tables::Focused::3 x 1-5",
                 "Tables::Focused::3 x 6-10",
+                "Tables::Focused::4 x 1-5",
+                "Tables::Focused::4 x 6-10",
+                "Tables::Focused::5 x 1-5",
+                "Tables::Focused::5 x 6-10",
             ),
         )
 
     def test_parse_source_fact_assigns_broad_and_focused_decks(self) -> None:
-        fact = parse_source_fact("5 X 2 = ?", "10")
+        fact = parse_source_fact("5 X 4 = ?", "20")
         self.assertEqual(fact.subdeck_name, "Tables::2-4")
         self.assertEqual(
             fact.deck_names,
-            ("Tables::2-4", "Tables::Focused::2 x 1-5"),
+            ("Tables::2-4", "Tables::Focused::4 x 1-5", "Tables::Focused::5 x 1-5"),
         )
 
     def test_parse_source_fact_keeps_one_facts_only_for_focused_decks(self) -> None:
-        fact = parse_source_fact("2 X 1 = ?", "2")
+        fact = parse_source_fact("5 X 1 = ?", "5")
         self.assertEqual(fact.subdeck_name, "")
-        self.assertEqual(fact.deck_names, ("Tables::Focused::2 x 1-5",))
+        self.assertEqual(fact.deck_names, ("Tables::Focused::5 x 1-5",))
 
     def test_load_supported_facts_includes_requested_one_facts_and_ignores_unused_ones(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -77,6 +81,9 @@ class MultiplicationCommonTest(unittest.TestCase):
                     ("7 X 10 = ?", "70"),
                     ("2 X 1 = ?", "2"),
                     ("3 X 1 = ?", "3"),
+                    ("4 X 1 = ?", "4"),
+                    ("5 X 1 = ?", "5"),
+                    ("5 X 4 = ?", "20"),
                     ("7 X 1 = ?", "7"),
                     ("12 X 4 = ?", "48"),
                     ("1 X 11 = ?", "11"),
@@ -88,16 +95,19 @@ class MultiplicationCommonTest(unittest.TestCase):
 
         self.assertEqual(
             [fact.front for fact in facts],
-            ["1 X 2 = ?", "2 X 4 = ?", "7 X 10 = ?", "2 X 1 = ?", "3 X 1 = ?"],
+            ["1 X 2 = ?", "2 X 4 = ?", "7 X 10 = ?", "2 X 1 = ?", "3 X 1 = ?", "4 X 1 = ?", "5 X 1 = ?", "5 X 4 = ?"],
         )
         self.assertEqual(
             [fact.deck_names for fact in facts],
             [
                 ("Tables::2-4", "Tables::Focused::2 x 1-5"),
-                ("Tables::2-4", "Tables::Focused::2 x 1-5"),
+                ("Tables::2-4", "Tables::Focused::2 x 1-5", "Tables::Focused::4 x 1-5"),
                 ("Tables::5-10",),
                 ("Tables::Focused::2 x 1-5",),
                 ("Tables::Focused::3 x 1-5",),
+                ("Tables::Focused::4 x 1-5",),
+                ("Tables::Focused::5 x 1-5",),
+                ("Tables::2-4", "Tables::Focused::4 x 1-5", "Tables::Focused::5 x 1-5"),
             ],
         )
 
