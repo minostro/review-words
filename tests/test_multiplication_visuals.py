@@ -23,7 +23,9 @@ class MultiplicationVisualsTest(unittest.TestCase):
     def test_render_fact_svg_includes_group_count_and_animal_label(self) -> None:
         svg = render_fact_svg(self.fact)
         self.assertIn("3 grupos de 4 pinguinos", svg)
-        self.assertIn("Total: 12", svg)
+        self.assertNotIn("Total: 12", svg)
+        self.assertIn('text-anchor="end"', svg)
+        self.assertIn('<circle cx="230"', svg)
         self.assertIn('fill="#0f172a"', svg)
         self.assertIn("<svg", svg)
 
