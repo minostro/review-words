@@ -6,7 +6,8 @@ import zipfile
 from pathlib import Path
 
 from scripts.english_spelling_content import ITEMS, completion_masks, picture_html
-from scripts.build_english_spelling_apkg import build_package
+from scripts.build_english_spelling_apkg import build_package, fields_for, render_template
+from scripts.english_spelling_templates import front_template, BACK_TMPL
 
 
 class SpellingContentTests(unittest.TestCase):
@@ -37,6 +38,19 @@ class SpellingContentTests(unittest.TestCase):
 
 
 class PackageTests(unittest.TestCase):
+    def test_only_whole_word_prompts_expose_native_autoplay_audio(self):
+        for item in ITEMS:
+            fields = fields_for(item)
+            # Keep Anki's media reference in the note even on silent cards.
+            self.assertEqual(fields[6], f'[sound:{item.audio_filename}]')
+            for template in [front_template('complete', f'Mask{i}') for i in (1, 2, 3)] + [BACK_TMPL]:
+                rendered = render_template(template, fields)
+                self.assertNotIn('[sound:', rendered)
+                self.assertNotIn('autoplay', rendered)
+                self.assertIn(f'src="{item.audio_filename}"', rendered)
+                self.assertIn('<audio controls', rendered)
+            self.assertIn(fields[6], render_template(front_template('build'), fields))
+
     def test_real_package_note_card_deck_and_media_structure(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

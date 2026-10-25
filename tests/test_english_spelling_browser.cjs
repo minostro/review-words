@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { chromium } = require('playwright');
+const os = require('node:os');
 const repo = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(repo, 'scripts/english_spelling_assets/card.js'), 'utf8');
 const template = execFileSync('python3', ['-c', 'import json; from scripts.english_spelling_templates import front_template, STYLING; print(json.dumps({"front":front_template("build"),"css":STYLING}))'], {cwd: repo, encoding:'utf8'});
@@ -12,6 +13,40 @@ const assets = JSON.parse(template);
 function html(answer) {
   return '<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>' + assets.css + '</style></head><body class="card">' + assets.front.replace('{{Answer}}', answer).replace('{{Unit}}', '1').replace('{{Picture}}', '').replace('{{Audio}}', '') + '</body></html>';
 }
+
+test('preview autoplays only whole-word prompts and keeps manual audio on every side', async () => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'spelling-audio-'));
+  const browser = await chromium.launch({headless:true, channel:process.env.SPELLING_BROWSER_CHANNEL || 'chrome'});
+  try {
+    execFileSync(process.env.SPELLING_PYTHON || 'python3', ['-c',
+      'import sys; from pathlib import Path; from scripts.build_english_spelling_apkg import write_preview; p=Path(sys.argv[1]); (p/"audio").mkdir(); write_preview(p,p/"audio")', folder], {cwd:repo});
+    const page = await browser.newPage();
+    // Observe playback requests without relying on Chrome's autoplay policy or speakers.
+    await page.addInitScript(() => {
+      window.playRequests = [];
+      HTMLMediaElement.prototype.play = function () { window.playRequests.push(this.getAttribute('src')); return Promise.resolve(); };
+    });
+    await page.goto('file://' + path.join(folder, 'preview.html'));
+    for (const index of ['0', '1', '2', '4', '5', '6']) {
+      await page.selectOption('#choose', index);
+      assert.equal(await page.evaluate(() => window.playRequests.length), 0);
+      assert.equal(await page.locator('audio').evaluate(a => a.controls && !a.autoplay), true);
+      assert.match(await page.locator('audio').getAttribute('src'), /^audio\/english-spelling-.*\.mp3$/);
+    }
+    await page.selectOption('#choose', '3');
+    assert.equal(await page.evaluate(() => window.playRequests.length), 1);
+    await page.click('#flip');
+    assert.equal(await page.evaluate(() => window.playRequests.length), 1);
+    assert.equal(await page.locator('audio').evaluate(a => a.controls), true);
+    await page.selectOption('#choose', '0');
+    assert.equal(await page.evaluate(() => window.playRequests.length), 1);
+    await page.locator('audio').evaluate(a => a.play());
+    assert.equal(await page.evaluate(() => window.playRequests.length), 2);
+  } finally {
+    await browser.close();
+    fs.rmSync(folder, {recursive:true, force:true});
+  }
+});
 
 test('mobile tap, drag, cancellation, reset, checks, and repeated initialization', async () => {
   const browser = await chromium.launch({headless: true, channel: process.env.SPELLING_BROWSER_CHANNEL || 'chrome'});

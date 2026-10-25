@@ -4,6 +4,9 @@ from pathlib import Path
 _ASSETS = Path(__file__).with_name("english_spelling_assets")
 STYLING = (_ASSETS / "card.css").read_text(encoding="utf-8")
 _SCRIPT = (_ASSETS / "card.js").read_text(encoding="utf-8")
+# Native sound tags autoplay even when hidden. Keep the canonical Audio field
+# for media discovery, but use HTML audio on sides that should be silent.
+_MANUAL_AUDIO = '<audio controls preload="none" src="english-spelling-{{NoteKey}}.mp3" aria-label="Listen to the word"></audio>'
 
 
 def front_template(mode: str, mask_field: str = "Mask") -> str:
@@ -13,7 +16,8 @@ def front_template(mode: str, mask_field: str = "Mask") -> str:
     if mask_field not in {"Mask", "Mask1", "Mask2", "Mask3"}:
         raise ValueError("unknown mask field")
     title = "Complete the word" if mode == "complete" else "Build the whole word"
-    subtitle = "Listen. Find the missing letters." if mode == "complete" else "Listen. Put every letter in its place."
+    subtitle = "Find the missing letters. Tap play for a hint." if mode == "complete" else "Listen. Put every letter in its place."
+    audio = _MANUAL_AUDIO if mode == "complete" else "{{Audio}}"
     mask = "{{" + mask_field + "}}" if mode == "complete" else "[]"
     return """
 <main class="spelling-shell">
@@ -21,7 +25,7 @@ def front_template(mode: str, mask_field: str = "Mask") -> str:
   <h1 class="spelling-heading">__TITLE__</h1>
   <p class="spelling-subtitle">__SUBTITLE__</p>
   <div class="spelling-picture">{{Picture}}</div>
-  <div class="spelling-audio"><span>Listen again</span>{{Audio}}</div>
+  <div class="spelling-audio"><span>Listen</span>__AUDIO__</div>
   <section id="spelling-card" data-mode="MODE" aria-label="Spelling activity">
     <span data-answer hidden aria-hidden="true">{{Answer}}</span>
     <span data-mask hidden aria-hidden="true">MASK</span>
@@ -39,7 +43,7 @@ def front_template(mode: str, mask_field: str = "Mask") -> str:
   </section>
 </main>
 <script>SCRIPT</script>
-""".replace("__TITLE__", title).replace("__SUBTITLE__", subtitle).replace("MODE", mode).replace("MASK", mask).replace("SCRIPT", _SCRIPT)
+""".replace("__TITLE__", title).replace("__SUBTITLE__", subtitle).replace("__AUDIO__", audio).replace("MODE", mode).replace("MASK", mask).replace("SCRIPT", _SCRIPT)
 
 
 BACK_TMPL = """
@@ -48,8 +52,8 @@ BACK_TMPL = """
   <h1 class="spelling-heading">Read it. Say it. Remember it.</h1>
   <div class="spelling-picture">{{Picture}}</div>
   <div class="spelling-answer">{{Answer}}</div>
-  <div class="spelling-audio"><span>Listen again</span>{{Audio}}</div>
+  <div class="spelling-audio"><span>Listen again</span>__AUDIO__</div>
   <p class="spelling-rating">Needed help or made a mistake? <strong>Again.</strong><br>
   Correct without help? <strong>Good.</strong></p>
 </main>
-"""
+""".replace("__AUDIO__", _MANUAL_AUDIO)

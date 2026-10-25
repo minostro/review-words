@@ -148,7 +148,9 @@ Import the APKG into **AnkiDroid Flashcards**. Start with a completion subdeck,
 then add the full-build exercises when comfortable. Enable burying of new and
 review siblings to avoid seeing all four versions of a target together. A
 starting daily limit of five new cards is reasonable; adjust to the child.
-Ensure automatic audio playback is enabled in deck options.
+Keep automatic audio playback enabled in deck options for whole-word prompts.
+Completion cards with letter clues and answer sides are silent until the audio
+play control is tapped. The preview follows the same playback rules.
 
 Drag a tile into a gap, or tap a tile and then a gap. Tap a placed letter to
 return it. Check provides spelling feedback; it does not submit a review rating.
@@ -160,7 +162,7 @@ Checks: `python -m unittest discover -s tests` and, with Playwright on NODE_PATH
 `node --test tests/test_english_spelling_interaction.cjs tests/test_english_spelling_browser.cjs`.
 Browser interaction checks use installed Chrome. They simulate mobile size/touch;
 physical AnkiDroid-device testing is still needed. Native audio autoplay depends
-on the app's setting; the audio replay button is always available.
+on the app's setting; a manual audio play control is always available.
 
 Artwork is in `scripts/english_spelling_assets/images/`. Generated atlases are
 referenced by actual image tags for Anki media discovery and sync; no Internet

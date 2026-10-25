@@ -95,10 +95,14 @@ def write_preview(directory, audio_dir):
     for item in ITEMS:
         fields = fields_for(item)
         fields[6] = f'<audio controls preload="auto" src="audio/{item.audio_filename}" aria-label="Listen to the word"></audio>'
+        def preview_side(template):
+            return render_template(template, fields).replace(
+                f'src="{item.audio_filename}"', f'src="audio/{item.audio_filename}"')
         for level in range(4):
             template = front_template('build' if level == 3 else 'complete', f'Mask{level + 1}' if level < 3 else 'Mask1')
             cards.append({'title': f'Unit {item.unit} · {item.answer} · {LEVEL_NAMES[level]}',
-                          'front': render_template(template, fields), 'back': render_template(BACK_TMPL, fields)})
+                          'autoplay': level == 3,
+                          'front': preview_side(template), 'back': preview_side(BACK_TMPL)})
     payload = json.dumps(cards, ensure_ascii=False).replace('</', '<\\/')
     preview = '''<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -119,7 +123,7 @@ function render(){
  const host=document.getElementById('preview-card');host.innerHTML=cards[selected][back?'back':'front'];
  host.querySelectorAll('script').forEach(old=>{const s=document.createElement('script');s.textContent=old.textContent;old.replaceWith(s)});
  choose.value=selected;document.getElementById('flip').textContent=back?'Try again':'Show Answer';
- const a=host.querySelector('audio');if(a){a.play().catch(()=>{})}
+ const a=host.querySelector('audio');if(a&&!back&&cards[selected].autoplay){a.play().catch(()=>{})}
 }
 choose.onchange=()=>{selected=Number(choose.value);back=false;render()};
 document.getElementById('next').onclick=()=>{selected=(selected+1)%cards.length;back=false;render()};
