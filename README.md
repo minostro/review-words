@@ -125,3 +125,44 @@ python -m scripts.build_storybook_audio_apkg \
   --audio-dir /Users/minostro/Documents/anki_exports/audio/storybook_audio_v1_2026-03-22 \
   --output /Users/minostro/Documents/anki_exports/salvador_review_words_storybook_audio_v1_2026-03-22.apkg
 ```
+
+## Illustrated English Spelling (AnkiDroid)
+
+The English deck contains the supplied school vocabulary Units 1 and 2: 31
+vocabulary notes and 124 cards. Each note has three complementary completion
+patterns and one whole-word/phrase build. Cards use school-style illustrations,
+bundled British English audio, and draggable letter tiles with a tap alternative.
+The four card types remain siblings so Anki can bury related cards.
+
+```bash
+python -m scripts.generate_english_spelling_audio
+python -m scripts.build_english_spelling_apkg
+```
+
+Outputs are under `out/english-spelling/`: `Salvador-English-Spelling.apkg` and
+`preview.html`. The preview shares the real templates and requires its adjacent
+PNG files and `audio/` folder. Audio generation needs a network connection;
+study works offline. Re-running audio generation reuses existing nonempty files.
+
+Import the APKG into **AnkiDroid Flashcards**. Start with a completion subdeck,
+then add the full-build exercises when comfortable. Enable burying of new and
+review siblings to avoid seeing all four versions of a target together. A
+starting daily limit of five new cards is reasonable; adjust to the child.
+Ensure automatic audio playback is enabled in deck options.
+
+Drag a tile into a gap, or tap a tile and then a gap. Tap a placed letter to
+return it. Check provides spelling feedback; it does not submit a review rating.
+Use Anki's Show Answer, then choose Again after an error/help or Good after an
+independent correct answer. Spaces and apostrophes stay visible; weekday capital
+letters are preserved. Full-build phrases use all their letters.
+
+Checks: `python -m unittest discover -s tests` and, with Playwright on NODE_PATH,
+`node --test tests/test_english_spelling_interaction.cjs tests/test_english_spelling_browser.cjs`.
+Browser interaction checks use installed Chrome. They simulate mobile size/touch;
+physical AnkiDroid-device testing is still needed. Native audio autoplay depends
+on the app's setting; the audio replay button is always available.
+
+Artwork is in `scripts/english_spelling_assets/images/`. Generated atlases are
+referenced by actual image tags for Anki media discovery and sync; no Internet
+image URLs are used. See that directory's parent `ARTWORK.md` for generation
+prompts and provenance.
