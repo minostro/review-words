@@ -166,3 +166,38 @@ Artwork is in `scripts/english_spelling_assets/images/`. Generated atlases are
 referenced by actual image tags for Anki media discovery and sync; no Internet
 image URLs are used. See that directory's parent `ARTWORK.md` for generation
 prompts and provenance.
+
+## One Salvador Package: Reading, Multiplication, and English
+
+Build one distribution file containing a `Salvador` parent deck with all three
+subjects beneath it:
+
+```bash
+python -m scripts.build_salvador_apkg
+```
+
+The current defaults combine the Reading v7 export, the existing animal
+multiplication export, and the illustrated English package. The result is
+`out/salvador/Salvador.apkg`: **415 notes, 508 cards, and 536 bundled media files**.
+The card counts are Reading 218, Multiplication 166, and English 124.
+
+Use `--reading`, `--multiplication`, `--english`, and `--output` to supply future
+versions explicitly. Build updated subject packages first, then rerun this
+command. Upload/distribute only `Salvador.apkg`; it includes every child deck and
+all audio/images. This is a distribution package, not an export of a learner's
+study history. The bundler rejects inputs containing review history.
+
+The bundler preserves source note GUIDs, model/field/template structure,
+sibling relationships, and media bytes; it adds subject tags and changes deck
+names under `Salvador`. Duplicate IDs/GUIDs and conflicting media filenames
+fail clearly instead of silently dropping content. Identical shared media is
+included only once. Generated APKGs remain ignored by git.
+
+Import the file with AnkiDroid. Existing imported cards can retain their old
+deck placement: if they do, move those existing decks/cards under the matching
+Salvador subject once. Do not delete studied cards merely to reorganize them.
+When offered an import-learning-progress option, leave it off for this shared
+package. See [Anki's package import documentation](https://docs.ankiweb.net/importing/packaged-decks.html).
+
+The Google Drive destination for the distribution is the existing private
+`salvador-anki` folder. Uploading a new version there does not publish it publicly.
