@@ -169,9 +169,42 @@ referenced by actual image tags for Anki media discovery and sync; no Internet
 image URLs are used. See that directory's parent `ARTWORK.md` for generation
 prompts and provenance.
 
-## One Salvador Package: Reading, Multiplication, and English
+## Social Science — October 2026
 
-Build one distribution file containing a `Salvador` parent deck with all three
+`Salvador::Social Science - Oct - 2026` is one child deck containing **44
+comprehension cards**. Its six topics stay together: school places (10), school
+workers (8), family (11), settlements (4), community helpers (8), and community
+organisation (3). Each concept is tested once with a short written question and
+three shuffled, tappable answers. There are no spelling exercises or extra
+category subdecks.
+
+The cards use 31 original worksheet picture crops, without the handwritten or
+printed answer labels. Tap **Hear question** for optional British English audio;
+neither side plays automatically. A selected answer is locked and followed by
+feedback and an explanation. Show Answer preserves the choice and its order.
+Anki ratings remain manual: Again for a wrong/revealed answer, Good for an
+understood answer. Hearing the question alone does not require Again.
+
+```bash
+python -m scripts.generate_social_science_audio
+python -m scripts.build_social_science_apkg
+python -m scripts.build_salvador_apkg
+```
+
+The standalone package and browser preview are generated in `out/social-science/`.
+The audio cache includes a question-text digest so wording changes get fresh
+recordings. Study works offline. Reproducing the image crops requires Pillow and
+the original WhatsApp files; see `scripts/social_science_assets/ARTWORK.md`.
+
+Tests include all-question media/layout checks at 360px, manual-only playback,
+locked choices and feedback, and front/back/navigation behavior. Browser tests
+use Chrome with Playwright; physical AnkiDroid testing is still a device check.
+Run the normal Python suite and `node --test tests/test_social_science_browser.cjs`
+with Playwright on `NODE_PATH` and `SPELLING_PYTHON` pointing to Python with genanki.
+
+## One Salvador Package: All Subjects
+
+Build one distribution file containing a `Salvador` parent deck with all four
 subjects beneath it:
 
 ```bash
@@ -179,11 +212,12 @@ python -m scripts.build_salvador_apkg
 ```
 
 The current defaults combine the Reading v7 export, the existing animal
-multiplication export, and the illustrated English package. The result is
-`out/salvador/Salvador.apkg`: **415 notes, 508 cards, and 536 bundled media files**.
-The card counts are Reading 218, Multiplication 166, and English 124.
+multiplication export, the illustrated English package, and Social Science.
+The result is `out/salvador/Salvador.apkg`: **459 notes, 552 cards, and 611 bundled
+media files**. The card counts are Reading 218, Multiplication 166, English 124,
+and Social Science 44.
 
-Use `--reading`, `--multiplication`, `--english`, and `--output` to supply future
+Use `--reading`, `--multiplication`, `--english`, `--social-science`, and `--output` to supply future
 versions explicitly. Build updated subject packages first, then rerun this
 command. Upload/distribute only `Salvador.apkg`; it includes every child deck and
 all audio/images. This is a distribution package, not an export of a learner's

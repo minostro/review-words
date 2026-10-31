@@ -20,6 +20,7 @@ SUBJECT_PREFIXES = {
     'Reading': 'Salvador Review Words::Storybook Audio',
     'Multiplication': 'Tables',
     'English': 'Salvador English Spelling',
+    'Social Science': 'Salvador::Social Science - Oct - 2026',
 }
 
 
@@ -35,12 +36,13 @@ class DestinationCard(genanki.Card):
 def subject_deck_name(subject, original):
     prefix = SUBJECT_PREFIXES[subject]
     suffix = original[len(prefix):] if original == prefix or original.startswith(prefix + '::') else '::' + original
-    return f'Salvador::{subject}{suffix}'
+    child = 'Social Science - Oct - 2026' if subject == 'Social Science' else subject
+    return f'Salvador::{child}{suffix}'
 
 
 def build_bundle(sources: dict[str, Path], output: Path) -> dict:
     if not sources or set(sources) - SUBJECT_PREFIXES.keys():
-        raise ValueError('Provide Reading, Multiplication and/or English source packages.')
+        raise ValueError('Provide Reading, Multiplication, English and/or Social Science source packages.')
     if output.resolve() in {path.resolve() for path in sources.values()}:
         raise ValueError('Output must not replace a source package.')
     decks, models, seen_guids, media, counts = {}, {}, set(), {}, {}
@@ -87,7 +89,7 @@ def build_bundle(sources: dict[str, Path], output: Path) -> dict:
                         raise ValueError(f'Note without cards in {source}: {row["guid"]}')
                     note = genanki.Note(
                         models[row['mid']], fields=row['flds'].split('\x1f'), guid=row['guid'],
-                        tags=list(dict.fromkeys(row['tags'].split() + [f'subject::{subject.lower()}'])),
+                        tags=list(dict.fromkeys(row['tags'].split() + [f'subject::{subject.lower().replace(" ", "_")}'])),
                         due=len(seen_guids),
                     )
                     note.cards = [DestinationCard(card['ord'], card['did'], card['queue'] == -1) for card in original_cards]
@@ -133,9 +135,11 @@ def main():
     parser.add_argument('--reading', type=Path, default=Path('out/salvador_review_words_storybook_audio_v7_2026-10-04.apkg'))
     parser.add_argument('--multiplication', type=Path, default=Path('out/1_to_20_Multiplication_Tables_100_accurate_value_animal_multiplication.apkg'))
     parser.add_argument('--english', type=Path, default=Path('out/english-spelling/Salvador-English-Spelling.apkg'))
+    parser.add_argument('--social-science', type=Path, default=Path('out/social-science/Social-Science-Oct-2026.apkg'))
     parser.add_argument('--output', type=Path, default=Path('out/salvador/Salvador.apkg'))
     args = parser.parse_args()
-    sources = {'Reading': args.reading, 'Multiplication': args.multiplication, 'English': args.english}
+    sources = {'Reading': args.reading, 'Multiplication': args.multiplication, 'English': args.english,
+               'Social Science': args.social_science}
     result = build_bundle(sources, args.output)
     print(json.dumps(result, indent=2))
     print(args.output.resolve())
